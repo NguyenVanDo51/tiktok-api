@@ -1,0 +1,19 @@
+# dependencies
+/node_modules
+
+# production
+/build
+build.zip
+# misc
+.DS_Store
+
+npm-debug.log*
+
+#idea
+/.idea
+*.iml
+
+.env
+/.vscode
+
+yarn.lock
