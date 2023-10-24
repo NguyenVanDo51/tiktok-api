@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express')
+var cors = require('cors')
 const uuid = require('uuid')
 const multer = require('multer');
 const { db } = require('./firebase');
@@ -8,8 +9,9 @@ const firebase = require('./firebase');
 const { format } = require('util');
 
 const app = express()
-app.use(express.urlencoded({extended: false}))
-app.use(express.json({ extended: false }))
+app.use(cors())
+app.use(express.urlencoded({extended: false, limit: '50mb', parameterLimit: 1000000}))
+app.use(express.json({ extended: false, limit: '50mb' }))
 
 const upload = multer({
   storage: multer.memoryStorage()
@@ -19,9 +21,12 @@ const port = 3000
 
 
 // [END initialize]
-
+app.post('/', (req, res) => {
+  return res.send(`It's work`)
+})
 
 app.post('/api/upload', (req, res) => {
+  console.log(req)
   if(!req.file) {
       return res.status(400).send("Error: No files found")
   } 
@@ -45,7 +50,7 @@ app.post('/api/upload', (req, res) => {
       // Make the file public
       await bucket.file(req.file.originalname).makePublic();
     } catch {
-      return res.status(500).send({
+      return res.status(200).send({
         message:
           `Uploaded the file successfully: ${req.file.originalname}, but public access is denied!`,
         url: publicUrl,
