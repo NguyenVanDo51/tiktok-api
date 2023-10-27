@@ -95,10 +95,18 @@ app.get("/api/posts", async (req, res) => {
   try {
     const page = Number(req.query?.page ?? 0);
     const limit = Number(req.query?.limit ?? 10);
+    const username = req.query?.username;
 
-    const posts = db.collection("posts");
+    let posts = db.collection("posts").orderBy("createdAt", 'desc');
 
-    const result = await posts.orderBy("createdAt").orderBy('desc').startAt(page).limit(limit).get();
+    if (username?.length) {
+      posts = posts.where("author.username", "==", username)
+    }
+
+    const result = await posts
+      // .startAt(page)
+      // .limit(limit)
+      .get();
 
     const total = (await posts.get()).size;
 
