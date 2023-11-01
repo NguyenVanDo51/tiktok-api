@@ -26,7 +26,7 @@ app.use(upload.single());
 const port = 3000;
 
 // [END initialize]
-app.post("/", (req, res) => {
+app.post("/api", (req, res) => {
   return res.send(`It's work`);
 });
 
