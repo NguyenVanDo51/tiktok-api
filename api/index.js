@@ -4,8 +4,8 @@ const express = require("express");
 var cors = require("cors");
 const uuid = require("uuid");
 const multer = require("multer");
-const { db } = require("./firebase");
-const firebase = require("./firebase");
+const { db } = require("../firebase");
+const firebase = require("../firebase");
 const { format } = require("util");
 
 const app = express();
