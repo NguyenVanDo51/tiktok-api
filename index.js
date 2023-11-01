@@ -30,8 +30,70 @@ app.post("/", (req, res) => {
   return res.send(`It's work`);
 });
 
+app.post("/api/signup", async (req, res) => {
+  const body = req.body ?? {};
+  try {
+    const result = await db
+      .collection("profile")
+      .doc(body.email)
+      .set({
+        createdAt: new Date().valueOf(),
+        ...body,
+      });
+
+    res.json(result.writeTime);
+  } catch (e) {
+    res.status(500).json(String(e));
+  }
+});
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const email = req.query?.email;
+
+    let posts = db.collection("profile").orderBy("email", "desc");
+
+    if (email?.length) {
+      posts = posts
+        .where("email", ">=", email)
+        .where("email", "<=", email + "\uf8ff");
+    }
+
+    const result = await posts.get();
+
+    const total = (await posts.get()).size;
+
+    const data = [];
+    result.forEach((doc) => {
+      data.push(doc.data());
+    });
+
+    res.json({ data, total });
+  } catch (e) {
+    res.status(500).json(String(e));
+  }
+});
+
+// app.post("/api/profile", async (req, res) => {
+//   const body = req.body ?? {};
+//   try {
+//     const id = uuid.v4();
+//     const result = await db
+//       .collection("profile")
+//       .doc(id)
+//       .set({
+//         _id: id,
+//         createdAt: new Date().valueOf(),
+//         ...body,
+//       });
+
+//     res.json(result.writeTime);
+//   } catch (e) {
+//     res.status(500).json(String(e));
+//   }
+// });
+
 app.post("/api/upload", (req, res) => {
-  console.log(req);
   if (!req.file) {
     return res.status(400).send("Error: No files found");
   }
@@ -74,8 +136,9 @@ app.post("/api/upload", (req, res) => {
 
 app.post("/api/posts", async (req, res) => {
   const body = req.body ?? {};
+
+  const id = uuid.v4();
   try {
-    const id = uuid.v4();
     const result = await db
       .collection("posts")
       .doc(id)
@@ -97,10 +160,10 @@ app.get("/api/posts", async (req, res) => {
     const limit = Number(req.query?.limit ?? 10);
     const username = req.query?.username;
 
-    let posts = db.collection("posts").orderBy("createdAt", 'desc');
+    let posts = db.collection("posts").orderBy("createdAt", "desc");
 
     if (username?.length) {
-      posts = posts.where("author.username", "==", username)
+      posts = posts.where("author.username", "==", username);
     }
 
     const result = await posts
@@ -113,6 +176,31 @@ app.get("/api/posts", async (req, res) => {
     const data = [];
     result.forEach((doc) => {
       data.push(doc.data());
+    });
+
+    res.json({ data, total, page, limit });
+  } catch (e) {
+    res.status(500).json(String(e));
+  }
+});
+
+app.get("/api/posts/following", async (req, res) => {
+  try {
+    const page = Number(req.query?.page ?? 0);
+    const limit = Number(req.query?.limit ?? 10);
+
+    let posts = db.collection("posts").orderBy("createdAt", "desc");
+
+    const result = await posts.get();
+
+    const total = (await posts.get()).size;
+
+    const data = [];
+    result.forEach((doc) => {
+      const post = doc.data();
+      post.isFollowing = true;
+
+      data.push(post);
     });
 
     res.json({ data, total, page, limit });
